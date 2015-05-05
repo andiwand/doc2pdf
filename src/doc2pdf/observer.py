@@ -62,15 +62,15 @@ class Observer(threading.Thread):
                 self.__handle_action(action, path);
     
     def __handle_action(self, action, path):
-        if action == Observer.ACTION_CREATED:
+        if action == Observer.ACTION_CREATED and self.__callbacks["created"]:
             self.__callbacks["created"](path)
-        elif action == Observer.ACTION_UPDATED:
+        elif action == Observer.ACTION_UPDATED and self.__callbacks["updated"]:
             self.__callbacks["updated"](path)
-        elif action == Observer.ACTION_DELETED:
+        elif action == Observer.ACTION_DELETED and self.__callbacks["deleted"]:
             self.__callbacks["deleted"](path)
-        elif action == Observer.ACTION_RENAMED_FROM:
+        elif action == Observer.ACTION_RENAMED_FROM and self.__callbacks["renamed"]:
             self.__from_path = path
-        elif action == Observer.ACTION_RENAMED_TO:
+        elif action == Observer.ACTION_RENAMED_TO and self.__callbacks["renamed"]:
             self.__callbacks["renamed"](self.__from_path, path)
     
     def interrupt(self):
