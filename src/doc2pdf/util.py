@@ -10,3 +10,6 @@ def mkrandomdirname(path, length):
 
 def replacelast(s, old, new, occurrence):
     return new.join(s.rsplit(old, occurrence))
+
+def replaceextension(path, new_extension):
+    return path.rsplit(".", 1)[0] + "." + new_extension
