@@ -98,7 +98,6 @@ def main():
     parser = argparse.ArgumentParser(description="automatic ms office to pdf converter")
     parser.add_argument("config", help="path to the config file")
     parser.add_argument("-c", dest="create", action="store_const", const=True, help="create sample config")
-    args = parser.parse_args([r"C:\Users\Andreas\Desktop\config.txt"])
     
     if args.create:
         config_file = open(args.config, "wb")
