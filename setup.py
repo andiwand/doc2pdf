@@ -11,7 +11,7 @@ setup(
     description="full automatic ms office to pdf converter",
     long_description="",
     package_dir={"": "src"},
-    packages=["dox2pdf"],
+    packages=["doc2pdf"],
     platforms="windows",
     entry_points={"console_scripts":["doc2pdf = doc2pdf.main:main"]},
 )
