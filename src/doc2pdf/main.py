@@ -79,6 +79,7 @@ class doc2pdf:
             if path.startswith(p): return False
         name = os.path.basename(path)
         if name.startswith("~"): return False
+        if name.endswith(".tmp"): return False
         split = path.rsplit(".", 1)
         if len(split) < 2: return False
         ext = split[1]
