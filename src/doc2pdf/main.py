@@ -101,6 +101,7 @@ class doc2pdf:
             self.__log(traceback.format_exc());
     def __handle_renamed(self, from_path, to_path):
         if not self.__use_path(from_path): return
+        if not self.__use_path(to_path): return
         self.__log("rename from " + from_path + " to " + to_path)
         try:
             os.rename(self.__pdfpath(from_path), self.__pdfpath(to_path))
