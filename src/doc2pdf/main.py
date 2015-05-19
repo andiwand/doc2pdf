@@ -49,6 +49,7 @@ class doc2pdf:
         o = Observer(path)
         o.subscribe("created", self.__handle_created_updated);
         o.subscribe("updated", self.__handle_created_updated);
+        # TODO: config auto delete
         #o.subscribe("deleted", self.__handle_deleted);
         o.subscribe("renamed", self.__handle_renamed);
         return o
