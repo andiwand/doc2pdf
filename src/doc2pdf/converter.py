@@ -14,7 +14,8 @@ def convert_word(src, dst, fmt):
     c = None
     try:
         c = client.DispatchEx("Word.Application")
-        doc = c.Documents.Open(src)
+        c.DisplayAlerts = False
+        doc = c.Documents.Open(src, ConfirmConversions=False, ReadOnly=True, Visible=False, NoEncodingDialog=True)
         fmt_code = FORMAT_DICT[fmt]
         doc.SaveAs(dst, FileFormat=fmt_code)
         doc.Close()
@@ -29,8 +30,9 @@ def convert_excel_to_pdf(src, dst):
     c = None
     try:
         c = client.DispatchEx("Excel.Application")
-        book = c.Workbooks.Open(src)
-        book.ExportAsFixedFormat(0, dst)
+        c.DisplayAlerts = False
+        book = c.Workbooks.Open(src, ReadOnly=True, IgnoreReadOnlyRecommended=True, Notify=False)
+        book.ExportAsFixedFormat(0, dst, OpenAfterPublish=False)
         book.Close()
     except Exception, e:
         print(e)
