@@ -18,6 +18,7 @@ EXAMPLE_CONFIG = """
 }
 """.strip().encode("utf-8")
 
+# TODO: switch from print to log function, add timestamp, fix newline
 class doc2pdf:
     EXTENSIONS = ["doc", "docx", "xls", "xlsx"]
     
