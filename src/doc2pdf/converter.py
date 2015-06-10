@@ -15,10 +15,10 @@ def convert_word(src, dst, fmt):
     try:
         c = client.DispatchEx("Word.Application")
         c.DisplayAlerts = False
-        doc = c.Documents.Open(src, ConfirmConversions=False, ReadOnly=True, Visible=False, NoEncodingDialog=True)
+        doc = c.Documents.Open(src, ConfirmConversions=False, ReadOnly=True, Revert=True, Visible=False, NoEncodingDialog=True)
         fmt_code = FORMAT_DICT[fmt]
         doc.SaveAs(dst, FileFormat=fmt_code)
-        doc.Close()
+        doc.Close(SaveChanges=0)
     except Exception, e:
         print(e)
     finally:
