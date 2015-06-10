@@ -79,6 +79,7 @@ class doc2pdf:
             if path.startswith(p): return False
         name = os.path.basename(path)
         if name.startswith("~"): return False
+        if name.endswith(".tmp"): return False
         split = path.rsplit(".", 1)
         if len(split) < 2: return False
         ext = split[1]
@@ -100,6 +101,7 @@ class doc2pdf:
             self.__log(traceback.format_exc());
     def __handle_renamed(self, from_path, to_path):
         if not self.__use_path(from_path): return
+        if not self.__use_path(to_path): return
         self.__log("rename from " + from_path + " to " + to_path)
         try:
             os.rename(self.__pdfpath(from_path), self.__pdfpath(to_path))
@@ -111,7 +113,7 @@ def main():
     parser = argparse.ArgumentParser(description="automatic ms office to pdf converter")
     parser.add_argument("config", help="path to the config file")
     parser.add_argument("-c", dest="create", action="store_const", const=True, help="create sample config")
-    args = parser.parse_args(args=[r"C:\Users\andreas\Desktop\config.json"])
+    args = parser.parse_args()
     
     if args.create:
         config_file = open(args.config, "wb")
