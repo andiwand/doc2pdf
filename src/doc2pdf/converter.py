@@ -63,11 +63,11 @@ class pdf_converter(threading.Thread):
             self.__condition.acquire()
             if not self.__queue:
                 self.__condition.wait()
-            print(self.__queue)
             if self.__stop_event.is_set():
                 break
             paths = self.__queue.pop(0)
             try:
+                logging.info("convert " + paths[0] + " ...")
                 convert_to_pdf(paths[0], paths[1])
             except Exception:
                 logging.warning(traceback.format_exc())

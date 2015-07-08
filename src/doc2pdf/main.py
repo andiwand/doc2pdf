@@ -89,7 +89,7 @@ class watcher:
         try:
             os.remove(self.__pdfpath(path))
         except Exception:
-            self.__log(traceback.format_exc());
+            logging.warning(traceback.format_exc());
     def __handle_renamed(self, from_path, to_path):
         if not self.__use_path(from_path): return
         if not self.__use_path(to_path): return
