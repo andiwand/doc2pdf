@@ -1,5 +1,8 @@
 from win32com import client
 import pythoncom
+import threading
+import logging
+import traceback
 
 #http://msdn.microsoft.com/en-us/library/bb238158.aspx
 FORMAT_DICT = {
@@ -19,8 +22,6 @@ def convert_word(src, dst, fmt):
         fmt_code = FORMAT_DICT[fmt]
         doc.SaveAs(dst, FileFormat=fmt_code)
         doc.Close(SaveChanges=0)
-    except Exception, e:
-        print(e)
     finally:
         if c: c.Quit()
         pythoncom.CoUninitialize()
@@ -34,8 +35,6 @@ def convert_excel_to_pdf(src, dst):
         book = c.Workbooks.Open(src, ReadOnly=True, IgnoreReadOnlyRecommended=True, Notify=False)
         book.ExportAsFixedFormat(0, dst, OpenAfterPublish=False)
         book.Close()
-    except Exception, e:
-        print(e)
     finally:
         if c: c.Quit()
         pythoncom.CoUninitialize()
@@ -47,3 +46,33 @@ def convert_to_pdf(src, dst):
         convert_excel_to_pdf(src, dst)
     else:
         raise ValueError("not able to convert")
+
+class pdf_converter(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.__stop_event = threading.Event()
+        self.__condition = threading.Condition()
+        self.__queue = []
+    def add(self, src, dst):
+        self.__condition.acquire()
+        self.__queue.append((src, dst))
+        self.__condition.notify()
+        self.__condition.release()
+    def run(self):
+        while True:
+            self.__condition.acquire()
+            if not self.__queue:
+                self.__condition.wait()
+            print(self.__queue)
+            if self.__stop_event.is_set():
+                break
+            paths = self.__queue.pop(0)
+            try:
+                convert_to_pdf(paths[0], paths[1])
+            except Exception:
+                logging.warning(traceback.format_exc())
+    def interrupt(self):
+        self.__stop_event.set()
+        self.__condition.acquire()
+        self.__condition.notify()
+        self.__condition.release()
