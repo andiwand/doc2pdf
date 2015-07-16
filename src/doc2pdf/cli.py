@@ -9,7 +9,9 @@ EXAMPLE_CONFIG = """
 {
     "log_file": "C:\\\\pathtolog.txt",
     "autodelete": false,
-    "timeout": 60,
+    "converter_timeout": 60,
+    "converter_delay": 5,
+    "queue_capacity": 100,
     "include_paths": ["C:\\\\incpath1", "C:\\\\incpath2"],
     "exclude_paths": ["C:\\\\incpath1\\\\excpath1"]
 }

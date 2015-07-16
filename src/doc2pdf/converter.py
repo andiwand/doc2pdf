@@ -1,8 +1,11 @@
-from win32com import client
-import pythoncom
+import os.path
 import threading
 import logging
 import traceback
+import multiprocessing as mp
+
+import pythoncom
+from win32com import client
 
 #http://msdn.microsoft.com/en-us/library/bb238158.aspx
 FORMAT_DICT = {
@@ -45,34 +48,38 @@ def convert_to_pdf(src, dst):
     elif src.endswith(".xls") or src.endswith(".xlsx"):
         convert_excel_to_pdf(src, dst)
     else:
-        raise ValueError("not able to convert")
+        raise ValueError("unsupported extension")
 
 class pdf_converter(threading.Thread):
-    def __init__(self):
+    def __init__(self, timeout, queue):
         threading.Thread.__init__(self)
         self.__stop_event = threading.Event()
-        self.__condition = threading.Condition()
-        self.__queue = []
-    def add(self, src, dst):
-        self.__condition.acquire()
-        self.__queue.append((src, dst))
-        self.__condition.notify()
-        self.__condition.release()
+        self.__timeout = timeout
+        self.__queue = queue
+    def __convert(self, src, dst):
+        logging.info("convert %s ..." % src)
+        if not os.path.isfile(src):
+            logging.error("file not found: %s" % src)
+            return
+        
+        try:
+            p = mp.Process(target=convert_to_pdf, args=(src, dst))
+            p.start()
+            p.join(self.__timeout)
+            if p.is_alive():
+                logging.error("timeout: %s" % src)
+                p.terminate()
+                if p.is_alive():
+                    logging.error("cannot terminate: %s" % src)
+                p.join(self.__timeout) #TODO: other timeout
+        except Exception:
+            logging.warning(traceback.format_exc())
     def run(self):
-        while True:
-            self.__condition.acquire()
-            if not self.__queue:
-                self.__condition.wait()
-            if self.__stop_event.is_set():
+        while not self.__stop_event.is_set():
+            paths, _ = self.__queue.get()
+            if not paths:
+                self.__stop_event.set()
                 break
-            paths = self.__queue.pop(0)
-            try:
-                logging.info("convert " + paths[0] + " ...")
-                convert_to_pdf(paths[0], paths[1])
-            except Exception:
-                logging.warning(traceback.format_exc())
+            self.__convert(paths[0], paths[1])
     def interrupt(self):
         self.__stop_event.set()
-        self.__condition.acquire()
-        self.__condition.notify()
-        self.__condition.release()
