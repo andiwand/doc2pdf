@@ -13,5 +13,9 @@ setup(
     package_dir={"": "src"},
     packages=["doc2pdf"],
     platforms="windows",
-    entry_points={"console_scripts":["doc2pdf = doc2pdf.cli:main"],"gui_scripts":["doc2pdfw = doc2pdf.cli:main"]},
+    entry_points={
+        "console_scripts": ["doc2pdf = doc2pdf.cli:main",
+                            "doc2pdf-test = doc2pdf.test:main"],
+        "gui_scripts": ["doc2pdfw = doc2pdf.cli:main"]
+    },
 )
