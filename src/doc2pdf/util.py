@@ -1,6 +1,8 @@
 import os
 import string
 import random
+import tempfile
+import shutil
 
 def mkrandomdirname(path, length):
     while True:
@@ -13,3 +15,24 @@ def replacelast(s, old, new, occurrence):
 
 def replaceextension(path, new_extension):
     return path.rsplit(".", 1)[0] + "." + new_extension
+
+def getextension(path):
+    return path.rsplit(".", 1)[1]
+
+def tmpfile(suffix="", prefix="tmp"):
+    tmp = tempfile.NamedTemporaryFile(mode="wb", delete=False,
+                                      suffix=suffix, prefix=prefix)
+    result = tmp.name
+    tmp.close()
+    return result
+
+def cleardir(path):
+    for f in os.listdir(path):
+        path = os.path.join(path, f)
+        try:
+            if os.path.isfile(path):
+                os.unlink(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
+        except Exception, e:
+            print e

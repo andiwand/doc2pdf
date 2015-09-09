@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import time
 import logging
+import tempfile
 
 from doc2pdf import util
 from doc2pdf import converter
@@ -18,7 +19,7 @@ class Watcher:
         logging.info("check config...")
         
         if not self.check_config():
-            logging.error("config malformed.")
+            logging.error("config malformed!")
             raise Exception()
         logging.info("config okay.")
         
@@ -28,6 +29,16 @@ class Watcher:
         
         self.__converter = converter.pdf_converter(config["converter_timeout"], self.__queue)
         logging.info("converter created.")
+        
+        if not os.path.exists(config["temporary_directory"]):
+            os.mkdir(config["temporary_directory"])
+        else:
+            if not os.path.isdir(config["temporary_directory"]):
+                logging.error("tmp path doesnt point to a dir!")
+                raise Exception()
+        util.cleardir(config["temporary_directory"])
+        tempfile.tempdir = config["temporary_directory"]
+        logging.info("tmp space created.")
         
         self.__observers = []
         include_paths = self.__config["include_paths"]
@@ -73,6 +84,8 @@ class Watcher:
         paths = (path, self.__pdfpath(path))
         self.__queue.removeFirst(paths)
         if delay == None: delay = self.__config["converter_delay"]
+        if self.__queue.contains(paths):
+            self.__queue.removeFirst();
         r = self.__queue.put(paths, self.__time() + delay)
         if not r:
             logging.info("queue overflow")

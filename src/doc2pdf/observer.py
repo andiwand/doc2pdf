@@ -1,6 +1,7 @@
 import os
 import threading
-from doc2pdf.watcher import util
+
+from doc2pdf import util
 
 import win32file
 import win32con

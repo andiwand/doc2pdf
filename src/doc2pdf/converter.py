@@ -3,6 +3,10 @@ import threading
 import logging
 import traceback
 import multiprocessing as mp
+import tempfile
+import shutil
+
+from doc2pdf import util
 
 import pythoncom
 from win32com import client
@@ -56,6 +60,20 @@ class pdf_converter(threading.Thread):
         self.__stop_event = threading.Event()
         self.__timeout = timeout
         self.__queue = queue
+    def __convert_tmp(self, src, dst):
+        suffix = "." + util.getextension(src)
+        src_tmp = util.tmpfile(suffix=suffix)
+        dst_tmp = util.tmpfile(suffix=".pdf")
+        
+        shutil.copyfile(src, src_tmp)
+        self.__convert(src_tmp, dst_tmp)
+        try:
+            shutil.copyfile(dst_tmp, dst)
+        except Exception:
+            logging.warning("cannot write pdf file, aborting.")
+        
+        os.remove(src_tmp)
+        os.remove(dst_tmp)
     def __convert(self, src, dst):
         logging.info("convert %s ..." % src)
         if not os.path.isfile(src):
@@ -80,6 +98,6 @@ class pdf_converter(threading.Thread):
             if not paths:
                 self.__stop_event.set()
                 break
-            self.__convert(paths[0], paths[1])
+            self.__convert_tmp(paths[0], paths[1])
     def interrupt(self):
         self.__stop_event.set()
