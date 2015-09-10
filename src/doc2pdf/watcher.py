@@ -27,7 +27,7 @@ class Watcher:
         self.__queue = queue.SyncedQueue(capacity, self.__time)
         logging.info("queue created.")
         
-        self.__converter = converter.pdf_converter(config["converter_timeout"], self.__queue)
+        self.__converter = converter.Converter(config["converter_timeout"], self.__queue)
         logging.info("converter created.")
         
         if not os.path.exists(config["temporary_directory"]):

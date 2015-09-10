@@ -1,8 +1,9 @@
 import logging
 import argparse
-from doc2pdf import watcher
 import json
 import sys
+
+from doc2pdf import watcher
 
 
 EXAMPLE_CONFIG = """
