@@ -36,7 +36,11 @@ class Word2PdfConverter(PdfConverter):
         self.__client = client.DispatchEx("Word.Application")
         self.__client.DisplayAlerts = False
     def __dest(self):
-        self.__client.Quit()
+        try:
+            if self.__client: self.__client.Quit()
+        except:
+            logging.error("quit word failed.")
+            logging.error(traceback.format_exc())
         pythoncom.CoUninitialize()
     def __recover(self):
         logging.error("recover word process...")
@@ -68,7 +72,11 @@ class Excel2PdfConverter(PdfConverter):
         self.__client = client.DispatchEx("Excel.Application")
         self.__client.DisplayAlerts = False
     def __dest(self):
-        if self.__client: self.__client.Quit()
+        try:
+            if self.__client: self.__client.Quit()
+        except:
+            logging.error("quit excel failed.")
+            logging.error(traceback.format_exc())
         pythoncom.CoUninitialize()
     def __recover(self):
         logging.error("recover excel process...")
