@@ -41,7 +41,7 @@ class Word2PdfConverter(PdfConverter):
             doc = self.__client.Documents.Open(src, ConfirmConversions=False, ReadOnly=True, Revert=True, Visible=False, NoEncodingDialog=True)
             doc.SaveAs(dst, FileFormat=17)
             doc.Close(SaveChanges=0)
-        except Exception:
+        except:
             logging.error("convert word failed...")
             logging.error(traceback.format_exc())
             return False
@@ -64,7 +64,7 @@ class Excel2PdfConverter(PdfConverter):
             book = self.__client.Workbooks.Open(src, ReadOnly=True, IgnoreReadOnlyRecommended=True, Notify=False)
             book.ExportAsFixedFormat(0, dst, OpenAfterPublish=False)
             book.Close()
-        except Exception:
+        except:
             logging.error("convert excel failed...")
             logging.error(traceback.format_exc())
             return False
@@ -114,7 +114,7 @@ class Converter(threading.Thread):
         try:
             logging.info("copy %s to %s ..." % (src, src_tmp))
             shutil.copyfile(src, src_tmp)
-        except Exception:
+        except:
             successful = False
             logging.warning("cannot copy office file, aborting.")
         
@@ -123,7 +123,7 @@ class Converter(threading.Thread):
             try:
                 logging.info("copy %s to %s ..." % (dst_tmp, dst))
                 shutil.copyfile(dst_tmp, dst)
-            except Exception:
+            except:
                 successful = False
                 logging.warning("cannot copy pdf file, aborting.")
         
@@ -148,7 +148,12 @@ class Converter(threading.Thread):
             paths, _ = self.__queue.get()
             if not paths:
                 self.__stop_event.set()
-                break
-            self.__convert_retry(paths[0], paths[1])
+                continue
+            
+            try:
+                self.__convert_retry(paths[0], paths[1])
+            except:
+                logging.error("uncaught converter exception...")
+                logging.error(traceback.format_exc())
     def interrupt(self):
         self.__stop_event.set()
