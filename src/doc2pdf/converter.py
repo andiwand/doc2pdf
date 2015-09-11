@@ -2,6 +2,7 @@ import os.path
 import threading
 import logging
 import shutil
+import traceback
 import pythoncom
 from win32com import client
 
@@ -36,9 +37,14 @@ class Word2PdfConverter(PdfConverter):
     def convert(self, src, dst):
         if not os.path.isfile(src): return False
         if not os.path.isfile(dst): return False
-        doc = self.__client.Documents.Open(src, ConfirmConversions=False, ReadOnly=True, Revert=True, Visible=False, NoEncodingDialog=True)
-        doc.SaveAs(dst, FileFormat=17)
-        doc.Close(SaveChanges=0)
+        try:
+            doc = self.__client.Documents.Open(src, ConfirmConversions=False, ReadOnly=True, Revert=True, Visible=False, NoEncodingDialog=True)
+            doc.SaveAs(dst, FileFormat=17)
+            doc.Close(SaveChanges=0)
+        except Exception:
+            logging.error("convert word failed...")
+            logging.error(traceback.format_exc())
+            return False
         return True
 
 class Excel2PdfConverter(PdfConverter):
@@ -54,9 +60,14 @@ class Excel2PdfConverter(PdfConverter):
     def convert(self, src, dst):
         if not os.path.isfile(src): return False
         if not os.path.isfile(dst): return False
-        book = self.__client.Workbooks.Open(src, ReadOnly=True, IgnoreReadOnlyRecommended=True, Notify=False)
-        book.ExportAsFixedFormat(0, dst, OpenAfterPublish=False)
-        book.Close()
+        try:
+            book = self.__client.Workbooks.Open(src, ReadOnly=True, IgnoreReadOnlyRecommended=True, Notify=False)
+            book.ExportAsFixedFormat(0, dst, OpenAfterPublish=False)
+            book.Close()
+        except Exception:
+            logging.error("convert excel failed...")
+            logging.error(traceback.format_exc())
+            return False
         return True
 
 class Office2PdfConverter(PdfConverter):
@@ -82,6 +93,17 @@ class Converter(threading.Thread):
         self.__timeout = timeout
         self.__queue = queue
         self.__converter = None
+    def __convert_retry(self, src, dst):
+        #TODO: quickfix, outsource
+        successful = False
+        for _ in range(3):
+            if self.__convert_tmp(src, dst):
+                successful = True
+                break
+            else:
+                logging.warning("retry convert..." % (src, dst))
+        if not successful: logging.warning("retry exceeded")
+        return successful
     def __convert_tmp(self, src, dst):
         suffix = "." + util.getextension(src)
         src_tmp = util.tmpfile(suffix=suffix)
@@ -127,6 +149,6 @@ class Converter(threading.Thread):
             if not paths:
                 self.__stop_event.set()
                 break
-            self.__convert_tmp(paths[0], paths[1])
+            self.__convert_retry(paths[0], paths[1])
     def interrupt(self):
         self.__stop_event.set()
