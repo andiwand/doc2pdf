@@ -119,7 +119,7 @@ class Converter(threading.Thread):
             logging.error("cannot copy office file, aborting.")
         
         if successful:
-            self.__convert(src_tmp, dst_tmp)
+            successful = self.__convert(src_tmp, dst_tmp)
             try:
                 logging.info("copy %s to %s ..." % (dst_tmp, dst))
                 shutil.copyfile(dst_tmp, dst)
