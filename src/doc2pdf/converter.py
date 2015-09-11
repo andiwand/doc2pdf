@@ -101,8 +101,8 @@ class Converter(threading.Thread):
                 successful = True
                 break
             else:
-                logging.warning("retry convert..." % (src, dst))
-        if not successful: logging.warning("retry exceeded")
+                logging.warning("retry convert %s ..." % src)
+        if not successful: logging.warning("retry exceeded. %s" % src)
         return successful
     def __convert_tmp(self, src, dst):
         suffix = "." + util.getextension(src)
@@ -116,7 +116,7 @@ class Converter(threading.Thread):
             shutil.copyfile(src, src_tmp)
         except:
             successful = False
-            logging.warning("cannot copy office file, aborting.")
+            logging.error("cannot copy office file, aborting.")
         
         if successful:
             self.__convert(src_tmp, dst_tmp)
@@ -125,10 +125,10 @@ class Converter(threading.Thread):
                 shutil.copyfile(dst_tmp, dst)
             except:
                 successful = False
-                logging.warning("cannot copy pdf file, aborting.")
+                logging.error("cannot copy pdf file, aborting.")
         
         if successful: logging.info("convert successful.")
-        else: logging.warning("convert failed. %s" % src)
+        else: logging.error("convert failed. %s" % src)
         
         os.remove(src_tmp)
         os.remove(dst_tmp)
