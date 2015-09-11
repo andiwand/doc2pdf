@@ -8,17 +8,13 @@ def dict_get_set(d, k, v):
     return tmp
 
 class TimedQueue:
-    def __init__(self, capacity=-1):
+    def __init__(self):
         self.__queue = []
         self.__element_to_times = {}
         self.__time_to_elements = {}
-        self.__capacity = capacity
     def __len__(self):
         return len(self.__queue)
     def put(self, element, time):
-        if self.__capacity > 0 and len(self.__queue) >= self.__capacity:
-            return False
-        
         dict_get_set(self.__element_to_times, element, []).append(time)
         dict_get_set(self.__time_to_elements, time, []).append(element)
         
@@ -63,8 +59,8 @@ class TimedQueue:
         return True
 
 class SyncedQueue(TimedQueue):
-    def __init__(self, capacity=-1, time=time.time):
-        TimedQueue.__init__(self, capacity)
+    def __init__(self, time=time.time):
+        TimedQueue.__init__(self)
         self.__condition = threading.Condition()
         self.__time = time
     def __len__(self):

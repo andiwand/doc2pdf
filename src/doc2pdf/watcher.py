@@ -23,8 +23,7 @@ class Watcher:
             raise Exception()
         logging.info("config okay.")
         
-        capacity = config["queue_capacity"]
-        self.__queue = queue.SyncedQueue(capacity, self.__time)
+        self.__queue = queue.SyncedQueue(self.__time)
         logging.info("queue created.")
         
         self.__converter = converter.Converter(config["converter_timeout"], self.__queue)
@@ -80,15 +79,15 @@ class Watcher:
         return util.replaceextension(path, "pdf")
     def __handle_created_updated(self, path, delay=None):
         if not self.__use_path(path): return
+        if len(self.__queue) >= self.__config["queue_capacity"]:
+            logging.warning("queue overflow, aborting.")
+            return
         logging.info("queue " + path)
         paths = (path, self.__pdfpath(path))
-        self.__queue.removeFirst(paths)
         if delay == None: delay = self.__config["converter_delay"]
-        if self.__queue.contains(paths):
-            self.__queue.removeFirst();
+        if self.__queue.contains(paths): self.__queue.removeFirst(paths);
         r = self.__queue.put(paths, self.__time() + delay)
-        if not r:
-            logging.info("queue overflow")
+        if not r: logging.warning("queue insert failed")
     def __handle_deleted(self, path):
         if not self.__use_path(path): return
         if not self.__config["autodelete"]: return
