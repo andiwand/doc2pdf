@@ -47,7 +47,7 @@ class Watcher:
             self.__observers.append(o)
         logging.info("observers created.")
     def __create_observer(self, path):
-        o = Observer(path)
+        o = Observer(path, buffer_size=131072) #TODO outsource
         o.subscribe("created", self.__handle_created_updated)
         o.subscribe("updated", self.__handle_created_updated)
         o.subscribe("deleted", self.__handle_deleted)
