@@ -3,6 +3,7 @@ import string
 import random
 import tempfile
 import shutil
+import errno
 
 def mkrandomdirname(path, length):
     while True:
@@ -18,6 +19,13 @@ def replaceextension(path, new_extension):
 
 def getextension(path):
     return path.rsplit(".", 1)[1]
+
+def silentremove(filename):
+    try:
+        os.remove(filename)
+        return True
+    except:
+        return False
 
 def tmpfile(suffix="", prefix="tmp"):
     tmp = tempfile.NamedTemporaryFile(mode="wb", delete=False,

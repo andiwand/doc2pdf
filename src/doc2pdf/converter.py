@@ -27,13 +27,21 @@ class PdfConverter:
 class Word2PdfConverter(PdfConverter):
     def __init__(self):
         PdfConverter.__init__(self)
+        self.__init()
+    def __del__(self):
+        self.__dest()
+        PdfConverter.__del__(self)
+    def __init(self):
         pythoncom.CoInitialize()
         self.__client = client.DispatchEx("Word.Application")
         self.__client.DisplayAlerts = False
-    def __del__(self):
+    def __dest(self):
         self.__client.Quit()
         pythoncom.CoUninitialize()
-        PdfConverter.__del__(self)
+    def __recover(self):
+        logging.error("recover word process...")
+        self.__dest()
+        self.__init()
     def convert(self, src, dst):
         if not os.path.isfile(src): return False
         if not os.path.isfile(dst): return False
@@ -42,21 +50,30 @@ class Word2PdfConverter(PdfConverter):
             doc.SaveAs(dst, FileFormat=17)
             doc.Close(SaveChanges=0)
         except:
-            logging.error("convert word failed...")
+            logging.error("convert word failed %s ..." % src)
             logging.error(traceback.format_exc())
+            self.__recover()
             return False
         return True
 
 class Excel2PdfConverter(PdfConverter):
     def __init__(self):
         PdfConverter.__init__(self)
+        self.__init()
+    def __del__(self):
+        self.__dest()
+        PdfConverter.__del__(self)
+    def __init(self):
         pythoncom.CoInitialize()
         self.__client = client.DispatchEx("Excel.Application")
         self.__client.DisplayAlerts = False
-    def __del__(self):
-        self.__client.Quit()
+    def __dest(self):
+        if self.__client: self.__client.Quit()
         pythoncom.CoUninitialize()
-        PdfConverter.__del__(self)
+    def __recover(self):
+        logging.error("recover excel process...")
+        self.__dest()
+        self.__init()
     def convert(self, src, dst):
         if not os.path.isfile(src): return False
         if not os.path.isfile(dst): return False
@@ -65,8 +82,9 @@ class Excel2PdfConverter(PdfConverter):
             book.ExportAsFixedFormat(0, dst, OpenAfterPublish=False)
             book.Close()
         except:
-            logging.error("convert excel failed...")
+            logging.error("convert excel failed %s ..." % src)
             logging.error(traceback.format_exc())
+            self.__recover()
             return False
         return True
 
@@ -130,8 +148,8 @@ class Converter(threading.Thread):
         if successful: logging.info("convert successful.")
         else: logging.error("convert failed. %s" % src)
         
-        os.remove(src_tmp)
-        os.remove(dst_tmp)
+        if not util.silentremove(src_tmp): logging.warning("cannot remove %s" % src_tmp)
+        if not util.silentremove(dst_tmp): logging.warning("cannot remove %s" % dst_tmp)
         
         return successful
     def __convert(self, src, dst):
