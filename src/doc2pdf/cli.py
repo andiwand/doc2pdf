@@ -2,6 +2,7 @@ import logging
 import argparse
 import json
 import sys
+import traceback
 
 from doc2pdf import watcher
 
@@ -19,12 +20,23 @@ EXAMPLE_CONFIG = """
 }
 """.strip().encode("utf-8")
 
+excepthook_old = None
+
+
+def catchexcept(exctype, value, tb):
+    if excepthook_old: excepthook_old()
+    logging.error("uncatched exception...")
+    logging.error("type: %s, value: %s, traceback: %s" % (exctype.__name__, value, "".join(traceback.format_tb(tb))))
+
+def hookexcept():
+    excepthook_old = sys.excepthook
+    sys.excepthook = catchexcept
 
 def main():
     parser = argparse.ArgumentParser(description="automatic ms office to pdf converter")
     parser.add_argument("config", help="path to the config file")
     parser.add_argument("-c", dest="create", action="store_const", const=True, help="create sample config")
-    args = parser.parse_args()
+    args = parser.parse_args([r""])
     
     if args.create:
         config_file = open(args.config, "wb")
@@ -41,6 +53,10 @@ def main():
     rootLogger.addHandler(consoleHandler)
     
     logging.info("starting doc2pdf...")
+    
+    logging.info("hook exceptions...")
+    hookexcept()
+    
     config_file = open(args.config)
     config = json.load(config_file)
     logging.info("config loaded.")
