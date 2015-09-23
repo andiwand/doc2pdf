@@ -1,5 +1,6 @@
 import os
 import threading
+import logging
 
 from doc2pdf import util
 
@@ -23,6 +24,7 @@ class Observer(threading.Thread):
     def __init__(self, path,
                  buffer_size=DEFAULT_BUFFER_SIZE,
                  random_length=DEFAULT_RANDOM_LENGTH):
+        logging.info("observer initialization...")
         threading.Thread.__init__(self)
         self.__path = path
         self.__buffer_size = buffer_size
@@ -39,12 +41,15 @@ class Observer(threading.Thread):
                                            None)
         self.__callbacks = {k:None for k in Observer.EVENTS}
         self.__from_path = None
-    
+        logging.info("observer initialized. %s" % path)
     def subscribe(self, event, callback):
-        if event not in Observer.EVENTS: raise ValueError("illegal event")
+        if event not in Observer.EVENTS:
+            logging.warning("subscribe failed.")
+            raise ValueError("illegal event")
         self.__callbacks[event] = callback
-    
+        logging.info("subscribe done.")
     def run(self):
+        logging.info("observer started.")
         while True:
             results = win32file.ReadDirectoryChangesW(self.__hdir,
                                                       Observer.DEFAULT_BUFFER_SIZE,
@@ -61,8 +66,9 @@ class Observer(threading.Thread):
             for action, subpath in results:
                 path = os.path.join(self.__path, subpath)
                 self.__handle_action(action, path);
-    
+        logging.info("observer ended.")
     def __handle_action(self, action, path):
+        logging.info("observed action: action %d, path %s" % (action, path))
         if action == Observer.ACTION_CREATED and self.__callbacks["created"]:
             self.__callbacks["created"](path)
         elif action == Observer.ACTION_UPDATED and self.__callbacks["updated"]:
@@ -73,9 +79,11 @@ class Observer(threading.Thread):
             self.__from_path = path
         elif action == Observer.ACTION_RENAMED_TO and self.__callbacks["renamed"]:
             self.__callbacks["renamed"](self.__from_path, path)
-    
     def interrupt(self):
+        logging.info("observer interrupt...")
         dummy = util.mkrandomdirname(self.__path, self.__random_length)
         self.__stop_event.set()
+        #TODO: use file instead
         os.mkdir(dummy)
         os.rmdir(dummy)
+        logging.info("observer interrupted.")
