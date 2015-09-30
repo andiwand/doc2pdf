@@ -21,9 +21,14 @@ EXAMPLE_CONFIG = """
 """.strip().encode("utf-8")
 
 
+f = None
+
 def catchexcept(etype, value, tb):
+    f.write("h")
     logging.error("uncatched exception...")
+    f.write("i")
     logging.error("type: %s, value: %s, traceback: %s" % (etype.__name__, value, "".join(traceback.format_tb(tb))))
+    f.write("j")
 
 #def hookexcept():
 #    sys.excepthook = catchexcept
@@ -34,11 +39,11 @@ def hookexcept():
     old_print_exception = traceback.print_exception
     f.write("b")
     def custom_print_exception(etype, value, tb, limit=None, file=None):
-        f.write("aa")
+        f.write("e")
         catchexcept(etype, value, tb)
-        f.write("bb")
+        f.write("f")
         old_print_exception(etype, value, tb, limit=limit, file=file)
-        f.write("cc")
+        f.write("g")
     f.write("c")
     traceback.print_exception = custom_print_exception
     f.write("d")
