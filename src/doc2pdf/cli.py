@@ -23,20 +23,27 @@ EXAMPLE_CONFIG = """
 excepthook_old = None
 
 
-def catchexcept(exctype, value, tb):
+def catchexcept(etype, value, tb):
     if excepthook_old: excepthook_old()
     logging.error("uncatched exception...")
-    logging.error("type: %s, value: %s, traceback: %s" % (exctype.__name__, value, "".join(traceback.format_tb(tb))))
+    logging.error("type: %s, value: %s, traceback: %s" % (etype.__name__, value, "".join(traceback.format_tb(tb))))
+
+#def hookexcept():
+#    excepthook_old = sys.excepthook
+#    sys.excepthook = catchexcept
 
 def hookexcept():
-    excepthook_old = sys.excepthook
-    sys.excepthook = catchexcept
+    old_print_exception = traceback.print_exception
+    def custom_print_exception(etype, value, tb, limit=None, file=None):
+        catchexcept(etype, value, tb)
+        old_print_exception(etype, value, tb, limit=limit, file=file)
+    traceback.print_exception = custom_print_exception
 
 def main():
     parser = argparse.ArgumentParser(description="automatic ms office to pdf converter")
     parser.add_argument("config", help="path to the config file")
     parser.add_argument("-c", dest="create", action="store_const", const=True, help="create sample config")
-    args = parser.parse_args()
+    args = parser.parse_args([r"C:\Users\andreas\Desktop\doc2pdf\config.json"])
     
     if args.create:
         config_file = open(args.config, "wb")
