@@ -3,6 +3,7 @@ import argparse
 import json
 import sys
 import traceback
+import threading
 
 from doc2pdf import watcher
 
@@ -21,34 +22,34 @@ EXAMPLE_CONFIG = """
 """.strip().encode("utf-8")
 
 
-f = None
-
 def catchexcept(etype, value, tb):
-    global f
-    f.write("h")
     logging.error("uncatched exception...")
-    f.write("i")
     logging.error("type: %s, value: %s, traceback: %s" % (etype.__name__, value, "".join(traceback.format_tb(tb))))
-    f.write("j")
-
-#def hookexcept():
-#    sys.excepthook = catchexcept
 
 def hookexcept():
-    global f
-    f = open("test.txt", "w+", 0)
-    f.write("a")
-    old_print_exception = traceback.print_exception
-    f.write("b")
-    def custom_print_exception(etype, value, tb, limit=None, file=None):
-        f.write("e")
-        catchexcept(etype, value, tb)
-        f.write("f")
-        old_print_exception(etype, value, tb, limit=limit, file=file)
-        f.write("g")
-    f.write("c")
-    traceback.print_exception = custom_print_exception
-    f.write("d")
+    """
+    Workaround for `sys.excepthook` thread bug from:
+    http://bugs.python.org/issue1230540
+
+    Call once from the main thread before creating any threads.
+    """
+
+    sys.excepthook = catchexcept
+    init_original = threading.Thread.__init__
+
+    def init(self, *args, **kwargs):
+        init_original(self, *args, **kwargs)
+        run_original = self.run
+
+        def run_with_except_hook(*args2, **kwargs2):
+            try:
+                run_original(*args2, **kwargs2)
+            except Exception:
+                sys.excepthook(*sys.exc_info())
+
+        self.run = run_with_except_hook
+
+    threading.Thread.__init__ = init
 
 def main():
     parser = argparse.ArgumentParser(description="automatic ms office to pdf converter")
