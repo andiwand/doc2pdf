@@ -37,34 +37,36 @@ def hookexcept():
     traceback.print_exception = custom_print_exception
 
 def main():
-    print "1"
+    f = open("testfile", "w+", 0)
+    
+    f.write("1");
     parser = argparse.ArgumentParser(description="automatic ms office to pdf converter")
-    print "2"
+    f.write("2");
     parser.add_argument("config", help="path to the config file")
-    print "3"
+    f.write("3");
     parser.add_argument("-c", dest="create", action="store_const", const=True, help="create sample config")
-    print "4"
+    f.write("4");
     args = parser.parse_args()
     
-    print "5"
+    f.write("5");
     if args.create:
         config_file = open(args.config, "wb")
         config_file.write(EXAMPLE_CONFIG)
         config_file.close()
         return
     
-    print "6"
+    f.write("6");
     rootLogger = logging.getLogger()
-    print "7"
+    f.write("7");
     rootLogger.setLevel(logging.DEBUG)
-    print "8"
+    f.write("8");
     logFormatter = logging.Formatter("%(asctime)s %(message)s")
     
-    print "9"
+    f.write("9");
     consoleHandler = logging.StreamHandler(sys.stdout)
-    print "10"
+    f.write("10");
     consoleHandler.setFormatter(logFormatter)
-    print "11"
+    f.write("11");
     rootLogger.addHandler(consoleHandler)
     
     logging.info("starting doc2pdf...")
