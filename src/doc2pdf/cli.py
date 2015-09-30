@@ -23,7 +23,8 @@ EXAMPLE_CONFIG = """
 
 f = None
 
-def catchexcept(etype, value, tb):
+def catchexcept(etype, value, tb):^
+    global f
     f.write("h")
     logging.error("uncatched exception...")
     f.write("i")
@@ -34,6 +35,7 @@ def catchexcept(etype, value, tb):
 #    sys.excepthook = catchexcept
 
 def hookexcept():
+    global f
     f = open("test.txt", "w+", 0)
     f.write("a")
     old_print_exception = traceback.print_exception
