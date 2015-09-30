@@ -39,50 +39,50 @@ def hookexcept():
 def main():
     f = open("testfile", "w+", 0)
     
-    f.write("1");
     parser = argparse.ArgumentParser(description="automatic ms office to pdf converter")
-    f.write("2");
     parser.add_argument("config", help="path to the config file")
-    f.write("3");
     parser.add_argument("-c", dest="create", action="store_const", const=True, help="create sample config")
-    f.write("4");
     args = parser.parse_args()
     
-    f.write("5");
     if args.create:
         config_file = open(args.config, "wb")
         config_file.write(EXAMPLE_CONFIG)
         config_file.close()
         return
     
-    f.write("6");
     rootLogger = logging.getLogger()
-    f.write("7");
     rootLogger.setLevel(logging.DEBUG)
-    f.write("8");
     logFormatter = logging.Formatter("%(asctime)s %(message)s")
     
-    f.write("9");
     consoleHandler = logging.StreamHandler(sys.stdout)
-    f.write("10");
     consoleHandler.setFormatter(logFormatter)
-    f.write("11");
     rootLogger.addHandler(consoleHandler)
     
+    f.write("1");
     logging.info("starting doc2pdf...")
     
+    f.write("2");
     logging.info("hook exceptions...")
+    f.write("3");
     hookexcept()
     
+    f.write("4");
     config_file = open(args.config)
+    f.write("5");
     config = json.load(config_file)
+    f.write("6");
     logging.info("config loaded.")
     
+    f.write("7");
     fileHandler = logging.FileHandler(config["log_file"])
+    f.write("8");
     fileHandler.setFormatter(logFormatter)
+    f.write("9");
     rootLogger.addHandler(fileHandler)
     
+    f.write("10");
     w = watcher.Watcher(config)
+    f.write("11");
     w.start()
 
 if __name__ == "__main__":
