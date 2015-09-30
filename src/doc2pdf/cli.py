@@ -34,8 +34,11 @@ def hookexcept():
     old_print_exception = traceback.print_exception
     f.write("b")
     def custom_print_exception(etype, value, tb, limit=None, file=None):
+        f.write("aa")
         catchexcept(etype, value, tb)
+        f.write("bb")
         old_print_exception(etype, value, tb, limit=limit, file=file)
+        f.write("cc")
     f.write("c")
     traceback.print_exception = custom_print_exception
     f.write("d")
