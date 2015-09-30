@@ -20,8 +20,6 @@ EXAMPLE_CONFIG = """
 }
 """.strip().encode("utf-8")
 
-excepthook_old = None
-
 
 def catchexcept(etype, value, tb):
     if excepthook_old: excepthook_old()
@@ -29,7 +27,6 @@ def catchexcept(etype, value, tb):
     logging.error("type: %s, value: %s, traceback: %s" % (etype.__name__, value, "".join(traceback.format_tb(tb))))
 
 #def hookexcept():
-#    excepthook_old = sys.excepthook
 #    sys.excepthook = catchexcept
 
 def hookexcept():
