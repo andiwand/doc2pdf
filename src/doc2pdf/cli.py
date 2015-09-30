@@ -71,7 +71,7 @@ def main():
     f.write("5");
     config = json.load(config_file)
     f.write("6");
-    logging.info("config loaded.")
+    #logging.info("config loaded.")
     
     f.write("7");
     fileHandler = logging.FileHandler(config["log_file"])
