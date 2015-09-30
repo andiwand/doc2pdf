@@ -22,7 +22,6 @@ EXAMPLE_CONFIG = """
 
 
 def catchexcept(etype, value, tb):
-    if excepthook_old: excepthook_old()
     logging.error("uncatched exception...")
     logging.error("type: %s, value: %s, traceback: %s" % (etype.__name__, value, "".join(traceback.format_tb(tb))))
 
@@ -30,15 +29,18 @@ def catchexcept(etype, value, tb):
 #    sys.excepthook = catchexcept
 
 def hookexcept():
+    f = open("test.txt", "w+", 0)
+    f.write("a")
     old_print_exception = traceback.print_exception
+    f.write("b")
     def custom_print_exception(etype, value, tb, limit=None, file=None):
         catchexcept(etype, value, tb)
         old_print_exception(etype, value, tb, limit=limit, file=file)
+    f.write("c")
     traceback.print_exception = custom_print_exception
+    f.write("d")
 
 def main():
-    f = open("testfile", "w+", 0)
-    
     parser = argparse.ArgumentParser(description="automatic ms office to pdf converter")
     parser.add_argument("config", help="path to the config file")
     parser.add_argument("-c", dest="create", action="store_const", const=True, help="create sample config")
@@ -58,31 +60,20 @@ def main():
     consoleHandler.setFormatter(logFormatter)
     rootLogger.addHandler(consoleHandler)
     
-    f.write("1");
     logging.info("starting doc2pdf...")
     
-    f.write("2");
     logging.info("hook exceptions...")
-    f.write("3");
-    #hookexcept()
+    hookexcept()
     
-    f.write("4");
     config_file = open(args.config)
-    f.write("5");
     config = json.load(config_file)
-    f.write("6");
     logging.info("config loaded.")
     
-    f.write("7");
     fileHandler = logging.FileHandler(config["log_file"])
-    f.write("8");
     fileHandler.setFormatter(logFormatter)
-    f.write("9");
     rootLogger.addHandler(fileHandler)
     
-    f.write("10");
     w = watcher.Watcher(config)
-    f.write("11");
     w.start()
 
 if __name__ == "__main__":
