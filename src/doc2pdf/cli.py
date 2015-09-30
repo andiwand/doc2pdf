@@ -23,7 +23,7 @@ EXAMPLE_CONFIG = """
 
 f = None
 
-def catchexcept(etype, value, tb):^
+def catchexcept(etype, value, tb):
     global f
     f.write("h")
     logging.error("uncatched exception...")
