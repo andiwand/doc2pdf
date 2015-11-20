@@ -71,17 +71,19 @@ class SyncedQueue(TimedQueue):
     def put(self, element, time):
         self.__condition.acquire()
         result = TimedQueue.put(self, element, time)
-        if result: self.__condition.notify()
+        if result: self.__condition.notifyAll()
         self.__condition.release()
         return result
     def get(self):
         self.__condition.acquire()
         result = None
         while True:
-            if len(self) <= 0: self.__condition.wait()
-            time = self.__time();
+            if len(self) <= 0:
+                self.__condition.wait()
+                continue
+            time = self.__time()
             result = TimedQueue.get(self, time)
-            if result != None: break
+            if result: break
             self.__condition.wait(self.next() - time)
         self.__condition.release()
         return result
