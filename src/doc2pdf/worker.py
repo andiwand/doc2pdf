@@ -10,7 +10,7 @@ from doc2pdf import converter
 from doc2pdf.observer import Observer
 from doc2pdf import queue
 
-class Watcher:
+class Worker:
     EXTENSIONS = ["doc", "docx", "xls", "xlsx"]
     
     def __init__(self, config):
@@ -26,7 +26,7 @@ class Watcher:
         self.__queue = queue.SyncedQueue(self.__time)
         logging.info("queue created.")
         
-        self.__converter = converter.Converter(config["converter_timeout"], self.__queue)
+        self.__converter = converter.Converter(config["converter_timeout"], config["converter_retries"], self.__queue)
         logging.info("converter created.")
         
         if not os.path.exists(config["temporary_directory"]):
@@ -73,7 +73,7 @@ class Watcher:
         split = path.rsplit(".", 1)
         if len(split) < 2: return False
         ext = split[1]
-        if ext not in Watcher.EXTENSIONS: return False
+        if ext not in Worker.EXTENSIONS: return False
         return True
     def __pdfpath(self, path):
         return util.replaceextension(path, "pdf")

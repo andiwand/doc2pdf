@@ -1,9 +1,7 @@
 import os
 import string
 import random
-import tempfile
 import shutil
-import errno
 
 def mkrandomdirname(path, length):
     while True:
@@ -27,13 +25,6 @@ def silentremove(filename):
     except:
         return False
 
-def tmpfile(suffix="", prefix="tmp"):
-    tmp = tempfile.NamedTemporaryFile(mode="wb", delete=False,
-                                      suffix=suffix, prefix=prefix)
-    result = tmp.name
-    tmp.close()
-    return result
-
 def cleardir(path):
     for f in os.listdir(path):
         path = os.path.join(path, f)
@@ -44,3 +35,8 @@ def cleardir(path):
                 shutil.rmtree(path)
         except Exception, e:
             print e
+
+def dict_get_set(d, k, v):
+    tmp = d.get(k, v);
+    if tmp == v: d[k] = v
+    return tmp

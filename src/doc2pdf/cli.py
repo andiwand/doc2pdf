@@ -5,7 +5,7 @@ import sys
 import traceback
 import threading
 
-from doc2pdf import watcher
+from doc2pdf import worker
 
 
 EXAMPLE_CONFIG = """
@@ -13,6 +13,7 @@ EXAMPLE_CONFIG = """
     "log_file": "C:\\\\pathtolog.txt",
     "autodelete": false,
     "converter_timeout": 60,
+    "converter_retries": 3,
     "converter_delay": 5,
     "queue_capacity": 100,
     "temporary_directory": "C:\\\\pathtotmp",
@@ -84,7 +85,7 @@ def main():
     fileHandler.setFormatter(logFormatter)
     rootLogger.addHandler(fileHandler)
     
-    w = watcher.Watcher(config)
+    w = worker.Worker(config)
     w.start()
 
 if __name__ == "__main__":

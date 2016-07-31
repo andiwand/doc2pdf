@@ -3,6 +3,7 @@ import threading
 import logging
 import shutil
 import traceback
+import tempfile
 import pythoncom
 from win32com import client
 
@@ -47,8 +48,6 @@ class Word2PdfConverter(PdfConverter):
         self.__dest()
         self.__init()
     def convert(self, src, dst):
-        if not os.path.isfile(src): return False
-        if not os.path.isfile(dst): return False
         try:
             doc = self.__client.Documents.Open(src, ConfirmConversions=False, ReadOnly=True, Revert=True, Visible=False, NoEncodingDialog=True)
             doc.SaveAs(dst, FileFormat=17)
@@ -83,8 +82,6 @@ class Excel2PdfConverter(PdfConverter):
         self.__dest()
         self.__init()
     def convert(self, src, dst):
-        if not os.path.isfile(src): return False
-        if not os.path.isfile(dst): return False
         try:
             book = self.__client.Workbooks.Open(src, ReadOnly=True, IgnoreReadOnlyRecommended=True, Notify=False)
             book.ExportAsFixedFormat(0, dst, OpenAfterPublish=False)
@@ -113,28 +110,29 @@ class Office2PdfConverter(PdfConverter):
             return False
 
 class Converter(threading.Thread):
-    def __init__(self, timeout, queue):
+    def __init__(self, timeout, retries, queue):
         threading.Thread.__init__(self)
         self.__stop_event = threading.Event()
         self.__timeout = timeout
+        self.__retries = retries
         self.__queue = queue
         self.__converter = None
     def __convert_retry(self, src, dst):
-        #TODO: quickfix, outsource
         successful = False
-        for _ in range(3):
+        for i in range(self.__retries):
             if self.__convert_tmp(src, dst):
                 successful = True
                 break
             else:
-                logging.warning("retry convert %s ..." % src)
-        if not successful: logging.warning("retry exceeded. %s" % src)
+                logging.warning("retry %d convert %s ..." % (i, src))
+        if not successful:
+            self.__converter.restart()
+            logging.error("retry exceeded %s" % src)
         return successful
     def __convert_tmp(self, src, dst):
-        suffix = "." + util.getextension(src)
-        src_tmp = util.tmpfile(suffix=suffix)
-        dst_tmp = util.tmpfile(suffix=".pdf")
-        
+        tmpdir = tempfile.mkdtemp()
+        src_tmp = os.path.join(tmpdir, os.path.basename(src))
+        dst_tmp = util.replaceextension(src_tmp, "pdf")
         successful = True
         
         try:
@@ -142,23 +140,24 @@ class Converter(threading.Thread):
             shutil.copyfile(src, src_tmp)
         except:
             successful = False
-            logging.error("cannot copy office file, aborting.")
-        
+            logging.error("cannot copy office file, aborting")
         if successful:
             successful = self.__convert(src_tmp, dst_tmp)
+        
+        if successful:
+            logging.info("convert successful")
             try:
                 logging.info("copy %s to %s ..." % (dst_tmp, dst))
                 shutil.copyfile(dst_tmp, dst)
             except:
                 successful = False
-                logging.error("cannot copy pdf file, aborting.")
-        
-        if successful: logging.info("convert successful.")
-        else: logging.error("convert failed. %s" % src)
+                logging.error("cannot copy pdf file, aborting")
+        else:
+            logging.error("convert failed. %s" % src)
         
         if not util.silentremove(src_tmp): logging.warning("cannot remove %s" % src_tmp)
         if not util.silentremove(dst_tmp): logging.warning("cannot remove %s" % dst_tmp)
-        
+        os.rmdir(tmpdir)
         return successful
     def __convert(self, src, dst):
         logging.info("convert %s to %s ..." % (src, dst))
@@ -171,7 +170,7 @@ class Converter(threading.Thread):
         self.__converter = Office2PdfConverter()
         
         while not self.__stop_event.is_set():
-            paths, _ = self.__queue.get()
+            paths, _ = self.__queue.pop()
             if not paths:
                 self.__stop_event.set()
                 continue
