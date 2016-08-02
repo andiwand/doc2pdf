@@ -132,7 +132,8 @@ class Converter(threading.Thread):
     def __convert_tmp(self, src, dst):
         tmpdir = tempfile.mkdtemp()
         src_tmp = os.path.join(tmpdir, os.path.basename(src))
-        dst_tmp = util.replaceextension(src_tmp, "pdf")
+        dst_tmp = os.path.join(tmpdir, os.path.basename(dst))
+        # TODO: use try finally
         successful = True
         
         try:
@@ -147,16 +148,15 @@ class Converter(threading.Thread):
         if successful:
             logging.info("convert successful")
             try:
-                logging.info("copy %s to %s ..." % (dst_tmp, dst))
-                shutil.copyfile(dst_tmp, dst)
+                logging.info("move %s to %s ..." % (dst_tmp, dst))
+                shutil.move(dst_tmp, dst)
             except:
                 successful = False
-                logging.error("cannot copy pdf file, aborting")
+                logging.error("cannot move pdf file, aborting")
         else:
             logging.error("convert failed. %s" % src)
         
         if not util.silentremove(src_tmp): logging.warning("cannot remove %s" % src_tmp)
-        if not util.silentremove(dst_tmp): logging.warning("cannot remove %s" % dst_tmp)
         os.rmdir(tmpdir)
         return successful
     def __convert(self, src, dst):
