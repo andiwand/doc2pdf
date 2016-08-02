@@ -10,6 +10,7 @@ from doc2pdf import converter
 from doc2pdf.observer import Observer
 from doc2pdf import queue
 
+# TODO: synchronize handlers or queue actions
 class Worker:
     EXTENSIONS = ["doc", "docx", "xls", "xlsx"]
     
@@ -100,17 +101,5 @@ class Worker:
         if not self.__use_path(from_path): return
         if not self.__use_path(to_path): return
         logging.info("rename " + from_path + " to " + to_path)
-        # TODO: quickfix, race condition create/update;rename
-        try:
-            os.remove(self.__pdfpath(from_path))
-        except:
-            pass
-        self.__queue.removeFirst((from_path, self.__pdfpath(from_path)))
+        util.silentremove(self.__pdfpath(from_path))
         self.__handle_created_updated(to_path, 0)
-        """
-        try:
-            os.rename(self.__pdfpath(from_path), self.__pdfpath(to_path))
-        except Exception:
-            logging.warning(traceback.format_exc())
-            self.__handle_created_updated(to_path)
-        """
