@@ -126,7 +126,6 @@ class Converter(threading.Thread):
             else:
                 logging.warning("retry %d convert %s ..." % (i, src))
         if not successful:
-            self.__converter.restart()
             logging.error("retry exceeded %s" % src)
         return successful
     def __convert_tmp(self, src, dst):
