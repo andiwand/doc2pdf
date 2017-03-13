@@ -5,13 +5,13 @@ import time
 import logging
 import tempfile
 import collections
+
 from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 from doc2pdf import util
 from doc2pdf import converter
 from doc2pdf import queue
-
-EventHandler = collections.namedtuple("EventHandler", [ "dispatch", "on_any_event", "on_created", "on_deleted", "on_modified", "on_moved" ])
 
 # TODO: synchronize handlers or queue actions
 class Worker:
@@ -50,12 +50,11 @@ class Worker:
             self.__observers.append(o)
         logging.info("observers created.")
     def __create_observer(self, path):
-        event_handler = EventHandler(
-            on_created=self.__handle_created_updated,
-            on_deleted=self.__handle_deleted,
-            on_modified=self.__handle_created_updated,
-            on_moved=self.__handle_moved
-        )
+        event_handler = FileSystemEventHandler()
+        event_handler.on_created = self.__handle_created_updated
+        event_handler.on_deleted = self.__handle_deleted
+        event_handler.on_modified = self.__handle_created_updated
+        event_handler.on_moved = self.__handle_moved
         
         o = Observer()
         o.schedule(event_handler, path, recursive=True)
