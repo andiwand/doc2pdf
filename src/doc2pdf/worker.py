@@ -51,8 +51,6 @@ class Worker:
         logging.info("observers created.")
     def __create_observer(self, path):
         event_handler = EventHandler(
-            dispatch=None,
-            on_any_event=None,
             on_created=self.__handle_created_updated,
             on_deleted=self.__handle_deleted,
             on_modified=self.__handle_created_updated,
