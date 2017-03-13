@@ -61,7 +61,6 @@ class Worker:
         
         o = Observer()
         o.schedule(event_handler, path, recursive=True)
-        o.start()
         
         return o
     def check_config(self):
