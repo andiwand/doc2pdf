@@ -4,15 +4,18 @@ import os
 import time
 import logging
 import tempfile
+import collections
+from watchdog.observers import Observer
 
 from doc2pdf import util
 from doc2pdf import converter
-from doc2pdf.observer import Observer
 from doc2pdf import queue
+
+EventHandler = collections.namedtuple("EventHandler", [ "dispatch", "on_any_event", "on_created", "on_deleted", "on_modified", "on_moved" ])
 
 # TODO: synchronize handlers or queue actions
 class Worker:
-    EXTENSIONS = ["doc", "docx", "xls", "xlsx"]
+    EXTENSIONS = [ "doc", "docx", "xls", "xlsx" ]
     
     def __init__(self, config):
         self.__time = time.time
@@ -47,11 +50,19 @@ class Worker:
             self.__observers.append(o)
         logging.info("observers created.")
     def __create_observer(self, path):
-        o = Observer(path, buffer_size=131072) #TODO outsource
-        o.subscribe("created", self.__handle_created_updated)
-        o.subscribe("updated", self.__handle_created_updated)
-        o.subscribe("deleted", self.__handle_deleted)
-        o.subscribe("renamed", self.__handle_renamed)
+        event_handler = EventHandler(
+            dispatch=None,
+            on_any_event=None,
+            on_created=self.__handle_created_updated,
+            on_deleted=self.__handle_deleted,
+            on_modified=self.__handle_created_updated,
+            on_moved=self.__handle_moved
+        )
+        
+        o = Observer()
+        o.schedule(event_handler, path, recursive=True)
+        o.start()
+        
         return o
     def check_config(self):
         # TODO: check config
@@ -63,7 +74,8 @@ class Worker:
     def stop(self):
         self.__converter.interrupt()
         for o in self.__observers:
-            o.interrupt()
+            o.stop()
+            o.join()
     def __use_path(self, path):
         exclude_paths = self.__config["exclude_paths"]
         for p in exclude_paths:
@@ -97,7 +109,7 @@ class Worker:
             os.remove(self.__pdfpath(path))
         except:
             pass
-    def __handle_renamed(self, from_path, to_path):
+    def __handle_moved(self, from_path, to_path):
         if not self.__use_path(from_path): return
         if not self.__use_path(to_path): return
         logging.info("rename " + from_path + " to " + to_path)
