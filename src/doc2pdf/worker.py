@@ -13,6 +13,22 @@ from doc2pdf import util
 from doc2pdf import converter
 from doc2pdf import queue
 
+class EventHandler(FileSystemEventHandler):
+    def __init__(self, on_created=None, on_deleted=None, on_modified=None, on_moved=None):
+        FileSystemEventHandler.__init__(self)
+        self.__on_created = on_created
+        self.__on_deleted = on_deleted
+        self.__on_modified = on_modified
+        self.__on_moved = on_moved
+    def on_created(self, event):
+        if self.__on_created is not None: self.__on_created(event.src_path)
+    def on_deleted(self, event):
+        if self.__on_deleted is not None: self.__on_deleted(event.src_path)
+    def on_modified(self, event):
+        if self.__on_modified is not None: self.__on_modified(event.src_path)
+    def on_moved(self, event):
+        if self.__on_moved is not None: self.__on_moved(event.src_path, event.dest_path)
+
 # TODO: synchronize handlers or queue actions
 class Worker:
     EXTENSIONS = [ "doc", "docx", "xls", "xlsx" ]
@@ -50,11 +66,12 @@ class Worker:
             self.__observers.append(o)
         logging.info("observers created.")
     def __create_observer(self, path):
-        event_handler = FileSystemEventHandler()
-        event_handler.on_created = self.__handle_created_updated
-        event_handler.on_deleted = self.__handle_deleted
-        event_handler.on_modified = self.__handle_created_updated
-        event_handler.on_moved = self.__handle_moved
+        event_handler = EventHandler(
+            self.__handle_created_updated,
+            self.__handle_deleted,
+            self.__handle_created_updated,
+            self.__handle_moved
+        )
         
         o = Observer()
         o.schedule(event_handler, path, recursive=True)
