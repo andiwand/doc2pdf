@@ -36,12 +36,12 @@ class TimedQueue:
         return element
     def __removeElement(self, element):
         times = self.__element_to_times.get(element)
-        if times == None or len(times) <= 0: return None
+        if times is None or len(times) <= 0: return None
         t = times.pop(0)
-        if len(times) > 0: del self.__element_to_times[element]
+        if len(times) <= 0: self.__element_to_times.pop(element)
         elements = self.__time_to_elements[t]
         elements.remove(element)
-        if len(elements) > 0: del self.__time_to_elements[t]
+        if len(elements) <= 0: self.__time_to_elements.pop(t)
         return t
     def removeFirst(self, element):
         t = self.__removeElement(element)
