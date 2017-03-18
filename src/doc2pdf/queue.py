@@ -11,25 +11,25 @@ class TimedQueue:
         self.__time_to_elements = {}
     def __len__(self):
         return len(self.__queue)
-    def put(self, element, time):
-        util.dict_get_set(self.__element_to_times, element, []).append(time)
-        util.dict_get_set(self.__time_to_elements, time, []).append(element)
-        bisect.insort(self.__queue, time)
+    def put(self, element, t):
+        util.dict_get_set(self.__element_to_times, element, []).append(t)
+        util.dict_get_set(self.__time_to_elements, t, []).append(element)
+        bisect.insort(self.__queue, t)
         return True
-    def pop(self, time):
+    def pop(self, t):
         if len(self.__queue) <= 0: return None
-        if time < self.__queue[0]: return None
-        time = self.__queue[0]
-        element = self.__removeTime(time)
+        if t < self.__queue[0]: return None
+        t = self.__queue[0]
+        element = self.__removeTime(t)
         del self.__queue[0]
-        return (element, time)
+        return (element, t)
     def contains(self, element):
         return element in self.__element_to_times
     def next(self):
         if not self.__queue: return None
         return self.__queue[0]
-    def __removeTime(self, time):
-        elements = self.__time_to_elements.get(time)
+    def __removeTime(self, t):
+        elements = self.__time_to_elements.get(t)
         if len(elements) <= 0: return None
         element = elements[0]
         self.__removeElement(element)
@@ -37,32 +37,32 @@ class TimedQueue:
     def __removeElement(self, element):
         times = self.__element_to_times.get(element)
         if times == None or len(times) <= 0: return None
-        time = times.pop(0)
+        t = times.pop(0)
         if len(times) > 0: del self.__element_to_times[element]
-        elements = self.__time_to_elements[time]
+        elements = self.__time_to_elements[t]
         elements.remove(element)
-        if len(elements) > 0: del self.__time_to_elements[time]
-        return time
+        if len(elements) > 0: del self.__time_to_elements[t]
+        return t
     def removeFirst(self, element):
-        time = self.__removeElement(element)
-        if time == None: return False
-        index = bisect.bisect(self.__queue, time)
+        t = self.__removeElement(element)
+        if t == None: return False
+        index = bisect.bisect(self.__queue, t)
         del self.__queue[index - 1]
         return True
 
 class SyncedQueue(TimedQueue):
-    def __init__(self, time=time.time):
+    def __init__(self, timefunc=time.time):
         TimedQueue.__init__(self)
         self.__condition = threading.Condition()
-        self.__time = time
+        self.__timefunc = timefunc
     def __len__(self):
         self.__condition.acquire()
         result = TimedQueue.__len__(self)
         self.__condition.release()
         return result
-    def put(self, element, time):
+    def put(self, element, t):
         self.__condition.acquire()
-        result = TimedQueue.put(self, element, time)
+        result = TimedQueue.put(self, element, t)
         if result: self.__condition.notifyAll()
         self.__condition.release()
         return result
@@ -73,10 +73,10 @@ class SyncedQueue(TimedQueue):
             if len(self) <= 0:
                 self.__condition.wait()
                 continue
-            time = self.__time()
-            result = TimedQueue.pop(self, time)
-            if result: break
-            self.__condition.wait(self.next() - time)
+            t = self.__timefunc()
+            result = TimedQueue.pop(self, t)
+            if result is not None: break
+            self.__condition.wait(self.next() - t)
         self.__condition.release()
         return result
     def next(self):

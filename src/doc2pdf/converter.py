@@ -173,7 +173,6 @@ class Converter(threading.Thread):
             if not paths:
                 self.__stop_event.set()
                 continue
-            
             try:
                 self.__convert_retry(paths[0], paths[1])
             except:
