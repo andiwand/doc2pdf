@@ -59,7 +59,7 @@ class Observer(threading.Thread):
                 # https://msdn.microsoft.com/en-us/library/windows/desktop/aa365465(v=vs.85).aspx
                 results = win32file.ReadDirectoryChangesW(
                     self.__hdir,
-                    Observer.DEFAULT_BUFFER_SIZE,
+                    self.__buffer_size,
                     True,
                     win32con.FILE_NOTIFY_CHANGE_FILE_NAME |
                         win32con.FILE_NOTIFY_CHANGE_DIR_NAME |

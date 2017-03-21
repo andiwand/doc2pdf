@@ -16,6 +16,7 @@ EXAMPLE_CONFIG = """
     "converter_retries": 3,
     "converter_delay": 5,
     "queue_capacity": 100,
+    "observer_buffer_size": 131072,
     "temporary_directory": "C:\\\\pathtotmp",
     "include_paths": ["C:\\\\incpath1", "C:\\\\incpath2"],
     "exclude_paths": ["C:\\\\incpath1\\\\excpath1"]

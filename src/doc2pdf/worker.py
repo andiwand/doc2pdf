@@ -16,15 +16,15 @@ class Worker:
     EXTENSIONS = [ "doc", "docx", "xls", "xlsx" ]
     
     def __init__(self, config):
-        self.__time = time.time
-        self.__config = config
         logging.info("check config...")
         
-        if not self.check_config():
+        if not self.check_config(config):
             logging.error("config malformed!")
             raise Exception()
         logging.info("config okay.")
+        self.__config = config
         
+        self.__time = time.time
         self.__queue = queue.SyncedQueue(self.__time)
         logging.info("queue created.")
         
@@ -45,13 +45,13 @@ class Worker:
             self.__observers.append(o)
         logging.info("observers created.")
     def __create_observer(self, path):
-        o = Observer(path, buffer_size=131072) # TODO: outsource
+        o = Observer(path, buffer_size=self.__config["observer_buffer_size"])
         o.subscribe("created", self.__handle_created_updated)
         o.subscribe("updated", self.__handle_created_updated)
         o.subscribe("deleted", self.__handle_deleted)
         o.subscribe("renamed", self.__handle_renamed)
         return o
-    def check_config(self):
+    def check_config(self, config):
         # TODO: check config
         
         if os.path.exists(config["temporary_directory"]) and not os.path.isdir(config["temporary_directory"]):
