@@ -78,7 +78,7 @@ class Observer(threading.Thread):
                 logging.info("observer error: %s" % e)
                 self.__deinit()
                 self.__init()
-                logging.info("observer restarted.)
+                logging.info("observer restarted.")
         self.__deinit()
         logging.info("observer ended.")
     def __handle_action(self, action, path):
