@@ -53,7 +53,7 @@ class Observer(threading.Thread):
     def run(self):
         logging.info("observer started.")
         self.__init()
-        logging.info("observer initialized.)
+        logging.info("observer initialized.")
         while True:
             try:
                 # https://msdn.microsoft.com/en-us/library/windows/desktop/aa365465(v=vs.85).aspx
