@@ -49,7 +49,7 @@ class Worker:
         o.subscribe("created", self.__handle_created_updated)
         o.subscribe("updated", self.__handle_created_updated)
         o.subscribe("deleted", self.__handle_deleted)
-        o.subscribe("renamed", self.__handle_renamed)
+        o.subscribe("renamed", self.__handle_moved)
         return o
     def check_config(self, config):
         # TODO: check config
