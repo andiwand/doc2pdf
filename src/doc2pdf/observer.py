@@ -53,7 +53,7 @@ class Observer(threading.Thread):
     def run(self):
         logging.info("observer started.")
         self.__init()
-        logging.info("observer initialized. (path: %s)" % path)
+        logging.info("observer initialized.)
         while True:
             try:
                 # https://msdn.microsoft.com/en-us/library/windows/desktop/aa365465(v=vs.85).aspx
@@ -78,7 +78,7 @@ class Observer(threading.Thread):
                 logging.info("observer error: %s" % e)
                 self.__deinit()
                 self.__init()
-                logging.info("observer restarted. (path: %s)" % path)
+                logging.info("observer restarted.)
         self.__deinit()
         logging.info("observer ended.")
     def __handle_action(self, action, path):
