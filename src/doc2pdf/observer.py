@@ -74,8 +74,12 @@ class Observer(threading.Thread):
                 for action, subpath in results:
                     path = os.path.join(self.__path, subpath)
                     self.__handle_action(action, path);
-            except OSError as e:
+            except Exception as e:
                 logging.info("observer error: %s" % e)
+                if not isinstance(e, tuple): raise e
+                if len(e) != 3: raise e
+                if e[1] != "ReadDirectoryChangesW": raise e
+                logging.info("observer restarting...")
                 self.__deinit()
                 self.__init()
                 logging.info("observer restarted.")
