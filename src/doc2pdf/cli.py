@@ -26,7 +26,7 @@ EXAMPLE_CONFIG = """
 
 def catchexcept(etype, value, tb):
     logging.error("uncatched exception...")
-    logging.error("type: %s, value: %s, traceback: %s" % (etype.__name__, value, "".join(traceback.format_tb(tb))))
+    logging.error("type: %s, value: %s, value type: %s, traceback: %s" % (etype.__name__, value, type(value), "".join(traceback.format_tb(tb))))
 
 def hookexcept():
     """
@@ -46,7 +46,7 @@ def hookexcept():
         def run_with_except_hook(*args2, **kwargs2):
             try:
                 run_original(*args2, **kwargs2)
-            except Exception:
+            except:
                 sys.excepthook(*sys.exc_info())
 
         self.run = run_with_except_hook
