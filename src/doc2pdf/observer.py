@@ -1,4 +1,5 @@
 import os
+import sys
 import threading
 import logging
 
@@ -75,14 +76,19 @@ class Observer(threading.Thread):
                     path = os.path.join(self.__path, subpath)
                     self.__handle_action(action, path);
             except Exception as e:
-                logging.info("observer error: %s %s" % (type(e), e))
+                logging.error("observer error: %s %s" % (type(e), e))
+                logging.error("type: %s, value: %s" % sys.exc_info()[0:2])
                 # TODO: fix
                 #if not isinstance(e, tuple): raise e
                 #if len(e) != 3: raise e
                 #if e[1] != "ReadDirectoryChangesW": raise e
                 logging.info("observer restarting...")
-                self.__deinit()
-                self.__init()
+                try:
+                    self.__deinit()
+                    self.__init()
+                except Exception as e2:
+                    logging.error("observer error: %s %s" % (type(e2), e2))
+                    logging.error("type: %s, value: %s" % sys.exc_info()[0:2])
                 logging.info("observer restarted.")
         self.__deinit()
         logging.info("observer ended.")
